@@ -1,0 +1,367 @@
+/* Dashboard.css - Pure CSS for Appointments Dashboard */
+
+.dash-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: inherit;
+}
+
+.dash-header {
+  background-color: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.dash-logo-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-logo-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #059669;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dash-logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  cursor: pointer;
+}
+
+.dash-main {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.dash-banner {
+  background: linear-gradient(to right, #059669, #065f46);
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 40px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 20px 25px -5px rgba(5, 150, 105, 0.2);
+}
+
+@media (min-width: 768px) {
+  .dash-banner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.dash-banner-content h2 {
+  font-size: 30px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.025em;
+}
+
+.dash-banner-content p {
+  color: #d1fae5;
+  max-width: 512px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.dash-banner-btn {
+  padding: 16px 32px;
+  background-color: white;
+  color: #047857;
+  font-weight: 800;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.2s;
+  font-size: 16px;
+}
+
+.dash-banner-btn:hover {
+  background-color: #f8fafc;
+  transform: translateY(-2px);
+}
+
+.dash-content {
+  background-color: white;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.dash-tabs {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: rgba(248, 250, 252, 0.5);
+}
+
+.dash-tab-btn {
+  flex: 1;
+  padding: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.dash-tab-btn:hover {
+  color: #334155;
+}
+
+.dash-tab-btn.active {
+  border-bottom-color: #059669;
+  color: #047857;
+  background-color: white;
+}
+
+.dash-list-area {
+  padding: 24px;
+}
+
+.dash-empty {
+  text-align: center;
+  padding: 80px 0;
+}
+
+.dash-empty svg {
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.dash-empty h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.dash-empty p {
+  color: #64748b;
+  margin: 0;
+}
+
+.dash-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.dash-item:last-child {
+  margin-bottom: 0;
+}
+
+.dash-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.dash-item-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .dash-item-inner {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.dash-item-left {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.dash-item-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.dash-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-item-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.dash-item-title-row h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dash-item-badge {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dash-item-datetime {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-item-datetime span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.dash-item-location {
+  color: #64748b;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.dash-item-right {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+@media (min-width: 768px) {
+  .dash-item-right {
+    flex-direction: column;
+    align-items: flex-end;
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
+.dash-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dash-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dash-status-badge.pending { color: #d97706; background-color: #fffbeb; }
+.dash-status-badge.completed { color: #059669; background-color: #ecfdf5; }
+.dash-status-badge.cancelled { color: #e11d48; background-color: #fff1f2; }
+
+.dash-actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dash-action-btn-outline {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  background-color: transparent;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dash-action-btn-outline:hover {
+  background-color: #f8fafc;
+}
+
+.dash-action-btn-solid {
+  padding: 8px 16px;
+  background-color: #0f172a;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dash-action-btn-solid:hover {
+  background-color: #059669;
+}
+
+.dash-action-link {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dash-action-link:hover {
+  color: #059669;
+}

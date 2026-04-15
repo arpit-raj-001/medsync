@@ -1,0 +1,330 @@
+.features-section {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  background: var(--bg-main);
+}
+
+.features-header-wrapper {
+  padding-top: 100px; /* Normal spacing since we are no longer overlapping the hero */
+  padding-bottom: 15px;
+  background-color: #E2F6ED; /* Darker green background to match the Hero cutout color */
+  color: #E2F6ED;
+  text-align: center;
+  position: relative;
+}
+
+.features-header {
+  color: var(--text-primary); /* Ensure child text resets from SVG context */
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.features-main-title {
+  font-family: var(--font-primary);
+  font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.features-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 650px;
+  margin: 12px auto 0;
+  line-height: 1.6;
+}
+
+.features-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Feature Colors */
+.feature-color-1 {
+  background-color: var(--bg-main); /* Light green */
+  color: var(--bg-main); /* Inherited by currentColor in SVG */
+}
+
+.feature-color-2 {
+  background-color: #E2F6ED; /* Slightly darker green */
+  color: #E2F6ED;
+}
+
+/* Full Bleed Rows */
+.feature-row {
+  width: 100%;
+  position: relative;
+  padding: 145px 0 25px 0; /* 120px wave overlap + 25px clearance top, 25px clearance bottom */
+  display: flex;
+  justify-content: center;
+}
+
+.feature-curve {
+  position: absolute;
+  bottom: -119px; /* Overlaps securely into the next section */
+  left: 0;
+  width: 100%;
+  height: 120px;
+  z-index: 10; /* Above backgrounds */
+  pointer-events: none;
+}
+
+.feature-curve svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.feature-content-wrapper {
+  color: var(--text-primary);
+  width: 100%;
+  max-width: var(--container-max);
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-row.visible .feature-content-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Alternating layout within wrapper */
+.feature-content-wrapper.reversed {
+  flex-direction: row-reverse;
+}
+
+.feature-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-title {
+  font-family: var(--font-primary);
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.feature-description {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.feature-description strong {
+  color: var(--text-primary);
+  display: block;
+  margin-top: 15px;
+}
+
+.feature-description ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.feature-description li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+}
+
+.feature-description li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: bold;
+  background: rgba(16, 185, 129, 0.15);
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  top: 4px;
+}
+
+.btn-try-now {
+  margin-top: 10px;
+  width: fit-content;
+}
+
+/* Reviews Wrapper inside text content */
+.reviews-wrapper {
+  margin-top: 30px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.review-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 120px;
+}
+
+.anim-fade-in {
+  animation: slideFadeIn 0.4s ease-out both;
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+  color: #F59E0B; /* Tailwind amber-500 */
+  font-size: 0.85rem;
+}
+
+.review-text {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.review-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.review-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s;
+}
+
+.review-dot.active {
+  background-color: var(--primary);
+  width: 24px;
+  border-radius: 4px;
+}
+
+.review-arrow {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  margin-left: auto; /* Push arrow to the far right */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.review-arrow:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateX(4px); /* Satisfying physical push effect */
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Visual Side */
+.feature-visual {
+  flex: 1;
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(16, 185, 129, 0.25);
+  background: white;
+  padding: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.feature-video {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  display: block;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .feature-row,
+  .feature-row:nth-child(even) {
+    flex-direction: column;
+    gap: 50px;
+  }
+  
+  .feature-visual,
+  .feature-content {
+    width: 100%;
+  }
+
+  .features-container {
+    gap: 90px;
+  }
+  
+  .feature-title {
+    text-align: center;
+  }
+}

@@ -1,0 +1,750 @@
+/* ======================================================
+   MediSync — Hero Section Styles
+   ====================================================== */
+
+/* ====== Entry Animation ====== */
+.anim-up {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 0.8s var(--ease-out) both;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding-top: calc(var(--nav-height) + 40px);
+  padding-bottom: 140px; /* Space for the bottom cutout SVG */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-bg-solid {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg-main);
+  z-index: -1;
+}
+
+.hero-bottom-cutout {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  z-index: 10;
+  display: block;
+}
+
+.hero-bottom-cutout {
+  width: 100%;
+  height: 120px; /* Massive smooth dip */
+  display: block;
+}
+/* ====== Background Blobs ====== */
+.hero-bg-elements {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+}
+
+.blob-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.4), transparent 70%);
+  top: -10%;
+  right: -5%;
+  animation: blobFloat 20s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.3), transparent 70%);
+  bottom: 10%;
+  left: -5%;
+  animation: blobFloat 25s ease-in-out infinite reverse;
+}
+
+.blob-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(110, 231, 183, 0.25), transparent 70%);
+  top: 50%;
+  left: 40%;
+  animation: blobFloat 18s ease-in-out infinite 5s;
+}
+
+.pulse-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 185, 129, 0.08);
+}
+
+.pulse-ring-1 {
+  width: 500px;
+  height: 500px;
+  top: 20%;
+  right: 10%;
+  animation: pulseExpand 8s ease-in-out infinite;
+}
+
+.pulse-ring-2 {
+  width: 350px;
+  height: 350px;
+  bottom: 20%;
+  left: 15%;
+  animation: pulseExpand 10s ease-in-out infinite 3s;
+}
+
+@keyframes blobFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.05); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(15px, 30px) scale(1.03); }
+}
+
+@keyframes pulseExpand {
+  0%, 100% { transform: scale(1); opacity: 0.08; }
+  50% { transform: scale(1.15); opacity: 0.03; }
+}
+
+/* ====== Floating Icons ====== */
+.floating-icons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.float-icon {
+  position: absolute;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  opacity: 0.5;
+}
+
+.float-icon-1 {
+  top: 15%;
+  left: 8%;
+  animation: floatUp 8s ease-in-out infinite;
+}
+
+.float-icon-2 {
+  top: 25%;
+  right: 7%;
+  animation: floatUp 10s ease-in-out infinite 2s;
+}
+
+.float-icon-3 {
+  bottom: 35%;
+  left: 5%;
+  animation: floatUp 9s ease-in-out infinite 4s;
+}
+
+.float-icon-4 {
+  top: 55%;
+  right: 3%;
+  animation: floatUp 7s ease-in-out infinite 1s;
+}
+
+.float-icon-5 {
+  bottom: 15%;
+  right: 12%;
+  animation: floatUp 11s ease-in-out infinite 3s;
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-18px); }
+}
+
+/* ====== Hero Container Layout ====== */
+.hero-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* ====== Hero Content (Left) ====== */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Badge */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  background: var(--btn-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  width: fit-content;
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.4); }
+}
+
+/* Title */
+.hero-title {
+  font-family: var(--font-primary);
+  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.title-gradient {
+  display: inline;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-line {
+  display: block;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+}
+
+/* Description */
+.hero-description {
+  font-size: 1.12rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  max-width: 520px;
+}
+
+.hero-description strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* CTA Actions */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+/* Stats */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-top: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(167, 243, 208, 0.4);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.stat-number {
+  font-family: var(--font-primary);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.stat-suffix {
+  font-family: var(--font-primary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-left: 2px;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border);
+}
+
+/* ====== Hero Visual (Right) ====== */
+.hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeSlideUp 1s var(--ease-out) 0.3s both;
+}
+
+.visual-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+}
+
+
+/* Heart Video */
+.hero-video-container {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.06), rgba(20, 184, 166, 0.03));
+}
+
+.hero-video {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius-xl);
+}
+
+/* Fade masks so video edges blend into background */
+.video-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.video-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-main), transparent);
+}
+
+.video-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-main), transparent);
+}
+
+/* ====== Floating Info Cards ====== */
+.info-card {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(167, 243, 208, 0.25);
+  z-index: 5;
+  transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+  animation: cardFloat 6s ease-in-out infinite;
+}
+
+.info-card:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-icon-green { background: #D1FAE5; }
+.card-icon-teal  { background: #CCFBF1; }
+.card-icon-light { background: #ECFDF5; }
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-healthy {
+  background: var(--primary);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+/* Card Positions */
+.card-appointment {
+  top: 8%;
+  left: -12%;
+  animation-delay: 0s;
+}
+
+.card-vitals {
+  top: 55%;
+  right: -6%;
+  animation-delay: 2s;
+}
+
+.card-medicine {
+  bottom: 4%;
+  left: -8%;
+  animation-delay: 4s;
+}
+
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ====== Brand Slider ====== */
+.brand-slider-section {
+  position: relative;
+  z-index: 2;
+  margin-top: 50px;
+  width: 100%;
+}
+
+.brand-slider-label {
+  font-size: 0.95rem; /* slightly larger */
+  font-weight: 800; /* bold */
+  color: #556B2F; /* olive green */
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.brand-slider-track-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 20px 0 50px 0; /* Adding padding inside so the overflowing tooltip isn't hidden */
+  margin-bottom: -50px; /* Offset the padding so layout is unaffected */
+}
+
+/* Edge fades — smooth dissolves on both sides */
+.brand-slider-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.brand-slider-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-main), transparent);
+}
+
+.brand-slider-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-main), transparent);
+}
+
+/* Infinite scrolling track */
+.brand-slider-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: max-content;
+  animation: brandScroll 30s linear infinite;
+}
+
+.brand-slider-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes brandScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Individual brand slide */
+.brand-slide {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 50px; /* Expands hit area to touch adjacent slides */
+  height: 140px; /* Increased height for even bigger visual presence */
+  cursor: pointer;
+}
+
+/* Gradient background that spans a fixed width, centered on hover */
+.brand-hover-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 240px; /* Larger fixed width for the bigger logos */
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(110, 231, 183, 0) 0%,
+    rgba(110, 231, 183, 0.15) 20%,
+    rgba(16, 185, 129, 0.4) 50%,
+    rgba(110, 231, 183, 0.15) 80%,
+    rgba(110, 231, 183, 0) 100%
+  );
+  opacity: 0;
+  border-radius: var(--radius-lg);
+  transition: opacity 0.4s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Show gradient on hover */
+.brand-slide:hover .brand-hover-bg {
+  opacity: 1;
+}
+
+/* Wrapper for the image to keep it above the background */
+.brand-img-wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Brand logo image */
+.brand-logo-img {
+  max-width: 160px; /* Increased max width for much bigger logos */
+  max-height: 70px; /* Increased height so they feel substantial */
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: grayscale(100%) opacity(0.5); /* Keep B&W default */
+  mix-blend-mode: multiply;
+  transition: filter 0.4s ease;
+}
+
+/* Hover: remove grayscale and make fully opaque */
+.brand-slide:hover .brand-logo-img {
+  filter: grayscale(0%) opacity(1);
+  mix-blend-mode: normal; /* Remove multiply on hover to show original colors over green */
+}
+
+/* Tooltip */
+.brand-tooltip {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%) translateY(15px);
+  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  color: var(--primary-dark);
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-tooltip::before {
+  display: none;
+}
+
+.brand-slide:hover .brand-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .hero-content {
+    align-items: center;
+  }
+
+  .hero-description {
+    max-width: 600px;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .hero-stats {
+    justify-content: center;
+  }
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .visual-wrapper {
+    max-width: 420px;
+  }
+
+
+  .card-appointment {
+    top: -5%;
+    left: -5%;
+  }
+
+  .card-vitals {
+    right: -5%;
+  }
+
+  .card-medicine {
+    left: -3%;
+  }
+
+  .float-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding-top: calc(64px + 24px);
+    min-height: auto;
+    padding-bottom: 40px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.2rem, 8vw, 3rem);
+  }
+
+  .hero-description {
+    font-size: 1rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .hero-stats {
+    gap: 20px;
+  }
+
+  .stat-number {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .info-card {
+    display: none;
+  }
+
+  .brand-slide {
+    padding: 0 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-stats {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .stat-item {
+    flex: 1;
+    align-items: center;
+    min-width: 80px;
+  }
+}
