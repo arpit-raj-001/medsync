@@ -70,6 +70,9 @@ const Footer = () => {
           <p className="copyright">
             © 2024 MediSync Platform. The living sanctuary for modern care.
           </p>
+          <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+            Last Updated: April 18, 2026 @ 05:15 PM IST (V3-PROD)
+          </p>
           <div className="status-row">
             <div className="status-badge">
               <span className="status-dot"></span>

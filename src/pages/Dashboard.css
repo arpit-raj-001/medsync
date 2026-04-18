@@ -365,3 +365,100 @@
 .dash-action-link:hover {
   color: #059669;
 }
+/* --- Replicated Doctor Dashboard Styles for Harmonization --- */
+.dd-item {
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+}
+
+.dd-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+  border-color: #10b981;
+}
+
+.dd-item-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dd-avatar-mini {
+  width: 44px;
+  height: 44px;
+  background: #f0fdf4;
+  color: #10b981;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dd-item-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.dd-item-details strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.dd-item-details span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dd-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.dd-item-time {
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dd-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dd-launch-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transition: all 0.2s;
+}
+
+.dd-launch-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}

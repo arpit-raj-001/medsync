@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -66,8 +68,12 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="nav-actions">
-          <button className="btn btn-ghost" id="btn-portal" onClick={() => navigate('/doctor-portal')}>Doctor Portal</button>
-          <button className="btn btn-primary" id="btn-signup">Get Started</button>
+           {user ? (
+             <button className="btn btn-ghost" id="btn-signout" onClick={() => { logout(); navigate('/login'); }}>Sign Out</button>
+           ) : (
+             <button className="btn btn-ghost" id="btn-portal" onClick={() => navigate('/login')}>Portal Access</button>
+           )}
+           <button className="btn btn-primary" id="btn-signup" onClick={() => navigate('/chat')}>Get Started</button>
         </div>
 
         {/* Hamburger */}

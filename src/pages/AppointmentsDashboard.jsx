@@ -1,99 +1,46 @@
-import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Search, PlusCircle, CheckCircle2, XCircle, Video } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Calendar, Clock, MapPin, Search, PlusCircle, CheckCircle2, XCircle, Video, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import './Dashboard.css';
 
-const mockAppointments = [
-  // Removed Dr. Aarav (pending) to keep it real
-  {
-    id: 'APT-09381',
-    doctorName: 'Dr. Priya Patel',
-    specialty: 'Dermatologist',
-    date: '2024-03-22',
-    time: '02:00 PM',
-    mode: 'Telehealth Video',
-    status: 'completed',
-    clinic: 'City Clinic, Mumbai',
-    fee: '₹800'
-  },
-  {
-    id: 'APT-08271',
-    doctorName: 'Dr. Rahul Verma',
-    specialty: 'General Physician',
-    date: '2024-02-14',
-    time: '09:00 AM',
-    mode: 'In-Person Visit',
-    status: 'cancelled',
-    clinic: 'MediCare Center, Bengaluru',
-    fee: '₹500'
-  }
-];
-
 const AppointmentsDashboard = () => {
+  const { user: patientData } = useAuth();
   const [activeTab, setActiveTab] = useState('pending');
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const [appointments, setAppointments] = useState(() => {
-    // Dynamic initialization logic
+  const fetchPatientAppointments = useCallback(async () => {
+    if (!patientData) return;
+    setLoading(true);
     try {
-      const saved = localStorage.getItem('medisync_appointments');
-      let loaded = saved ? JSON.parse(saved) : mockAppointments;
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*, doctors(*)')
+        .eq('patient_id', patientData.id);
       
-      // Auto complete check
-      const now = new Date();
-      loaded = loaded.map(app => {
-        if (app.status === 'pending') {
-          const appDateTime = new Date(`${app.date} ${app.time}`);
-          if (now > appDateTime) {
-            app.status = 'completed';
-          }
-        }
-        return app;
-      });
-      return loaded;
-    } catch (e) {
-      console.error("Local storage parse error (appointments):", e);
-      return mockAppointments;
+      if (!error) setAppointments(data || []);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
-  });
+  }, [patientData]);
 
-  // Save to local storage on change
-  React.useEffect(() => {
-    localStorage.setItem('medisync_appointments', JSON.stringify(appointments));
-  }, [appointments]);
+  useEffect(() => {
+    fetchPatientAppointments();
+  }, [fetchPatientAppointments]);
 
-  const markCompleted = (id) => {
-    setAppointments(prev => prev.map(app => 
-      app.id === id ? { ...app, status: 'completed' } : app
-    ));
+  const markCompleted = async (id) => {
+    await supabase.from('appointments').update({ status: 'completed' }).eq('id', id);
+    fetchPatientAppointments();
   };
 
-  const handleCancel = (id) => {
-    setAppointments(prev => prev.map(app => 
-      app.id === id ? { ...app, status: 'cancelled' } : app
-    ));
-  };
-
-  const handleReschedule = async (app) => {
-    try {
-      // Find doctor in doctors.json to get full details for Booking.jsx
-      const res = await fetch('/doctors.json');
-      const allDoctors = await res.json();
-      const doctor = allDoctors.find(d => d.name === app.doctorName && d.specialty === app.specialty);
-      
-      if (doctor) {
-        localStorage.setItem('medisync_selected_doctor', JSON.stringify(doctor));
-        localStorage.setItem('medisync_chat_stage', 'booking');
-        localStorage.setItem('medisync_rescheduling_id', app.id);
-        navigate('/chat');
-      } else {
-        alert("Doctor details not found. Please start a new triage.");
-        navigate('/chat');
-      }
-    } catch (e) {
-      console.error("Reschedule Error:", e);
-      navigate('/chat');
-    }
+  const handleCancel = async (id) => {
+    await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id);
+    fetchPatientAppointments();
   };
 
   const filteredAppointments = appointments.filter(app => app.status === activeTab);
@@ -165,78 +112,55 @@ const AppointmentsDashboard = () => {
               </div>
             ) : (
               <div>
+                {filteredAppointments.length > 0 && (
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Clock size={20} color="#10b981" /> My Pending Meetings
+                  </h3>
+                )}
                 {filteredAppointments.map(app => (
-                  <div key={app.id} className="dash-item">
-                    <div className="dash-item-inner">
-                      
-                      <div className="dash-item-left">
-                         <div className="dash-item-icon">
-                           <Calendar size={20} />
-                         </div>
-                         <div className="dash-item-info">
-                           <div className="dash-item-title-row">
-                             <h3>{app.doctorName}</h3>
-                             <span className="dash-item-badge">
-                               {app.specialty}
-                             </span>
-                           </div>
-                           <p className="dash-item-datetime">
-                             <span><Calendar size={14} color="#94a3b8" /> {app.date}</span>
-                             <span><Clock size={14} color="#94a3b8" /> {app.time}</span>
-                           </p>
-                           <p className="dash-item-location">
-                             <MapPin size={14} color="#94a3b8" /> {app.clinic} • {app.mode}
-                           </p>
-                         </div>
+                  <div key={app.id} className="dd-item">
+                    <div className="dd-item-info">
+                      <div className="dd-avatar-mini"><Video size={20} /></div>
+                      <div className="dd-item-details">
+                        <strong>Dr. {app.doctors?.name || 'Specialist'}</strong>
+                        <span>{app.case_id} • 1 Consultation Session</span>
                       </div>
-
-                      <div className="dash-item-right">
-                         <div className="dash-status-row">
-                           {app.status === 'pending' && <span className="dash-status-badge pending"><Clock size={14} /> Pending</span>}
-                           {app.status === 'completed' && <span className="dash-status-badge completed"><CheckCircle2 size={14} /> Completed</span>}
-                           {app.status === 'cancelled' && <span className="dash-status-badge cancelled"><XCircle size={14} /> Cancelled</span>}
-                         </div>
-                         {app.status === 'pending' && (
-                           <div className="dash-actions-row">
-                             {app.mode === 'Telehealth Video' && app.meetId && (
-                                <button 
-                                  onClick={() => {
-                                    localStorage.setItem('medisync_telemeet_context', JSON.stringify({
-                                      doctorName: app.doctorName,
-                                      specialty: app.specialty,
-                                      time: app.time,
-                                      caseId: app.id,
-                                      preReport: app.preReport || null
-                                    }));
-                                    navigate(`/telemeet?room=${app.meetId}`);
-                                  }}
-                                  className="dash-action-btn-solid"
-                                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #0369a1)', display: 'flex', alignItems: 'center', gap: '6px' }}
-                                >
-                                  <Video size={14} /> TeleMeet
-                                </button>
-                              )}
-                             <button 
-                               onClick={() => handleReschedule(app)} 
-                               className="dash-action-btn-outline"
-                             >
-                               Reschedule
-                             </button>
-                             <button 
-                               onClick={() => handleCancel(app.id)} 
-                               className="dash-action-btn-red"
-                               style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
-                             >
-                               Cancel
-                             </button>
-                             <button onClick={() => markCompleted(app.id)} className="dash-action-btn-solid">Mark Completed</button>
-                           </div>
-                         )}
-                         {app.status !== 'pending' && (
-                           <button className="dash-action-link">View Summary</button>
-                         )}
+                    </div>
+                    
+                    <div className="dd-item-meta">
+                      <div className="dd-item-time"><Clock size={16} /> {app.appointment_time} • {app.appointment_date}</div>
+                      <div className="dd-item-actions">
+                        {app.status === 'pending' && app.case_id && (
+                          <>
+                            <button 
+                              className="dd-launch-btn"
+                              onClick={() => {
+                                localStorage.setItem('medisync_telemeet_context', JSON.stringify({
+                                  doctorName: app.doctors?.name,
+                                  specialty: app.doctors?.specialty,
+                                  time: app.appointment_time,
+                                  caseId: app.case_id || app.id,
+                                  preReport: app.pre_report || null
+                                }));
+                                navigate(`/telemeet?room=${app.case_id}`);
+                              }}
+                            >
+                              <Video size={16} /> Join TeleMeet
+                            </button>
+                            <button className="dash-action-btn-outline" onClick={() => handleReschedule(app)}>Reschedule</button>
+                            <button 
+                              className="dash-action-btn-red" 
+                              style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '8px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: 700 }}
+                              onClick={() => handleCancel(app.id)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                        {app.status !== 'pending' && (
+                          <button className="dash-action-link">View Session Summary</button>
+                        )}
                       </div>
-
                     </div>
                   </div>
                 ))}

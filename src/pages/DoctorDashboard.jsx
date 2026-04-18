@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useSearchParams, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
   Clock, 
@@ -25,10 +27,11 @@ import PatientDetailModal from '../components/Doctor/PatientDetailModal';
 import './DoctorDashboard.css';
 
 const DoctorDashboard = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [loginForm, setLoginForm] = useState({ id: '', password: '' });
-    const [doctorData, setDoctorData] = useState(null);
-    const [appointments, setAppointments] = useState([]);
+    const { user: doctorData, logout } = useAuth();
+    const navigate = useNavigate();
+    
+    const [allAppointments, setAllAppointments] = useState([]); // All appointments for calendar dots
+    const [appointments, setAppointments] = useState([]); // Filtered for current view
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState('home'); // 'home' or 'bookings'
     const [activeTab, setActiveTab] = useState('PENDING'); // PENDING, ACCEPTED, COMPLETED, CANCELLED
@@ -39,55 +42,43 @@ const DoctorDashboard = () => {
     const [showModal, setShowModal] = useState(false);
 
     // Sync view from URL if present
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Sync view from URL if present
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const urlView = params.get('view');
+        const urlView = searchParams.get('view');
         if (urlView) setView(urlView);
-    }, []);
+    }, [searchParams]);
 
-    const handleLogin = async (e) => {
-        if (e) e.preventDefault();
-        setLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('doctors')
-                .select('*')
-                .eq('id', loginForm.id.trim().toLowerCase())
-                .eq('password', loginForm.password.trim())
-                .single();
-
-            if (data && !error) {
-                setDoctorData(data);
-                setIsLoggedIn(true);
-            } else {
-                alert('Invalid Credentials. For demo use dr001 / gamma1202');
-            }
-        } catch (err) {
-            console.error('Login error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchAppointments = useCallback(async () => {
+    const fetchAllData = useCallback(async () => {
         if (!doctorData) return;
         setLoading(true);
         try {
+            // 1. Fetch ALL appointments for calendar dots (Active & Pending)
+            const { data: allData, error: allErr } = await supabase
+                .from('appointments')
+                .select('*')
+                .eq('doctor_id', doctorData.id)
+                .in('status', ['pending', 'accepted']);
+            
+            if (!allErr) setAllAppointments(allData || []);
+
+            // 2. Fetch FILTERED appointments for the current view
             let query = supabase
                 .from('appointments')
                 .select('*')
                 .eq('doctor_id', doctorData.id);
 
-            // Filter by date ONLY on home view (calendar focused)
+            // Home View: Sort by date/time and filter by selected date
             if (view === 'home') {
                 query = query.eq('appointment_date', selectedDate);
             } else {
-                // On dashboard/bookings view, filter by TAB status
+                // Bookings View: Filter by tab status
                 query = query.eq('status', activeTab.toLowerCase());
             }
 
-            const { data, error } = await query.order('appointment_time', { ascending: true });
-            if (!error) setAppointments(data);
+            const { data, error } = await query.order('appointment_date', { ascending: true }).order('appointment_time', { ascending: true });
+            if (!error) setAppointments(data || []);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {
@@ -96,8 +87,8 @@ const DoctorDashboard = () => {
     }, [doctorData, selectedDate, view, activeTab]);
 
     useEffect(() => {
-        if (isLoggedIn) fetchAppointments();
-    }, [isLoggedIn, fetchAppointments]);
+        if (doctorData) fetchAllData();
+    }, [doctorData, fetchAllData]);
 
     const updateStatus = async (id, newStatus, date, time) => {
         try {
@@ -125,53 +116,13 @@ const DoctorDashboard = () => {
                     .eq('appointment_time', time);
             }
 
-            fetchAppointments();
+            fetchAllData();
         } catch (err) {
             alert('Failed to update status: ' + err.message);
         }
     };
 
-    if (!isLoggedIn) {
-        return (
-            <div className="dd-container">
-                <div className="dd-login-view">
-                    <div className="dd-logo">
-                         <div style={{ background: '#0f172a', width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto' }}>
-                            <Activity color="white" size={32} />
-                         </div>
-                    </div>
-                    <h2>Doctor Portal</h2>
-                    <p>Enter your credentials to manage your medical practice.</p>
-                    
-                    <form onSubmit={handleLogin}>
-                        <div className="dd-input-group">
-                            <label>Doctor ID</label>
-                            <input 
-                                type="text" 
-                                className="dd-input" 
-                                placeholder="e.g. dr001"
-                                value={loginForm.id}
-                                onChange={(e) => setLoginForm({...loginForm, id: e.target.value})}
-                            />
-                        </div>
-                        <div className="dd-input-group">
-                            <label>Password</label>
-                            <input 
-                                type="password" 
-                                className="dd-input" 
-                                placeholder="••••••••"
-                                value={loginForm.password}
-                                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                            />
-                        </div>
-                        <button type="submit" className="dd-login-btn" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" style={{margin: '0 auto'}} /> : 'Access Dashboard'}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        );
-    }
+    if (!doctorData) return <Navigate to="/login" />;
 
     const renderAppointmentCard = (apt) => (
         <div key={apt.id} className="dd-item" onClick={() => { setSelectedApt(apt); setShowModal(true); }}>
@@ -188,18 +139,11 @@ const DoctorDashboard = () => {
                 <div className="dd-item-actions" onClick={e => e.stopPropagation()}>
                     <button className="dd-icon-btn" onClick={() => { setSelectedApt(apt); setShowModal(true); }} title="View Digital Summary"><Info size={16} /></button>
                     
-                    {activeTab === 'PENDING' && (
+                    {(activeTab === 'PENDING' || activeTab === 'ACCEPTED' || view === 'home') && (
                         <>
-                            <button className="dd-action-btn accept" onClick={() => updateStatus(apt.id, 'accepted', apt.appointment_date, apt.appointment_time)}>Accept</button>
-                            <button className="dd-action-btn reject" onClick={() => updateStatus(apt.id, 'cancelled', apt.appointment_date, apt.appointment_time)}>Reject</button>
-                        </>
-                    )}
-
-                    {activeTab === 'ACCEPTED' && (
-                        <>
-                            <button className="dd-launch-btn" onClick={() => window.open(`/telemeet?room=${apt.case_id}&role=doctor`, '_blank')}><Video size={16} /> Launch Meet</button>
-                            <button className="dd-action-btn complete" onClick={() => updateStatus(apt.id, 'completed', apt.appointment_date, apt.appointment_time)}>Mark Completed</button>
-                            <button className="dd-action-btn reject" onClick={() => updateStatus(apt.id, 'cancelled', apt.appointment_date, apt.appointment_time)}>Cancel</button>
+                            <button className="dd-launch-btn" onClick={(e) => { e.stopPropagation(); window.open(`/telemeet?room=${apt.case_id}&role=doctor`, '_blank'); }}><Video size={16} /> Launch Meet</button>
+                            <button className="dd-action-btn complete" onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'completed', apt.appointment_date, apt.appointment_time); }}>Mark Completed</button>
+                            <button className="dd-action-btn reject" onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, 'cancelled', apt.appointment_date, apt.appointment_time); }}>Cancel Meet</button>
                         </>
                     )}
                 </div>
@@ -209,10 +153,21 @@ const DoctorDashboard = () => {
 
     return (
         <div style={{ background: '#f8fafc', minHeight: '100vh', paddingTop: '72px' }}>
-            <DoctorNavbar 
-                doctorName={doctorData.name} 
-                onLogout={() => setIsLoggedIn(false)} 
-            />
+
+            <div className="dd-view-toggle">
+                <button 
+                    className={`dd-toggle-btn ${view === 'home' ? 'active' : ''}`}
+                    onClick={() => setView('home')}
+                >
+                    <CalIcon size={18} /> Schedule & Calendar
+                </button>
+                <button 
+                    className={`dd-toggle-btn ${view === 'bookings' ? 'active' : ''}`}
+                    onClick={() => setView('bookings')}
+                >
+                    <Activity size={18} /> Clinical Management
+                </button>
+            </div>
 
             <div className="dd-container">
                 {view === 'home' ? (
@@ -221,12 +176,16 @@ const DoctorDashboard = () => {
                             <CalendarUI 
                                 selectedDate={selectedDate} 
                                 onDateSelect={setSelectedDate} 
+                                appointmentCounts={allAppointments.reduce((acc, apt) => {
+                                    acc[apt.appointment_date] = (acc[apt.appointment_date] || 0) + 1;
+                                    return acc;
+                                }, {})}
                             />
                         </div>
                         <div className="dd-home-right">
                              <div className="dd-main-card">
                                  <div className="dd-card-header">
-                                     <h3>Daily Schedule: {new Date(selectedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}</h3>
+                                     <h3>Upcoming Meets: {new Date(selectedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric'})}</h3>
                                  </div>
                                  <div className="dd-list">
                                     {appointments.length > 0 ? appointments.map(renderAppointmentCard) : <div className="dd-empty"><p>No sessions found for this day.</p></div>}

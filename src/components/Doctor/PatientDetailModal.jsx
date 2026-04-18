@@ -9,7 +9,9 @@ import {
   Stethoscope, 
   History,
   Tag as TagIcon,
-  Loader2
+  Loader2,
+  Activity,
+  ShieldCheck
 } from 'lucide-react';
 import './PatientDetailModal.css';
 
@@ -48,7 +50,7 @@ const PatientDetailModal = ({ isOpen, onClose, appointment }) => {
              </div>
              <div className="pdm-meta-item">
                 <Stethoscope size={16} />
-                <span>{appointment.mode}</span>
+                <span>{appointment.mode || 'Video Consult'}</span>
              </div>
           </div>
 
@@ -73,7 +75,7 @@ const PatientDetailModal = ({ isOpen, onClose, appointment }) => {
                          </div>
                       </div>
                       <div className="pdm-field">
-                         <label>Urgency Reasoning</label>
+                         <label>Patient Context</label>
                          <p style={{fontSize: '13px', opacity: 0.8}}>{pr.possibleConcern || 'No specific concerns flagged.'}</p>
                       </div>
                    </div>
@@ -83,37 +85,39 @@ const PatientDetailModal = ({ isOpen, onClose, appointment }) => {
              {/* Right Column: AI Clinical Analysis */}
              <div className="pdm-right">
                 <section className="pdm-section">
-                   <h3><FileText size={18} /> AI Clinical Analysis</h3>
-                   {appointment.medical_context ? (
-                      <div className="pdm-analysis-box">
-                         <div className="pdm-analysis-note">
-                            <label>Clinical Note</label>
-                            <p>{appointment.medical_context.medicalNotes}</p>
-                         </div>
-                         <div className="pdm-analysis-item">
-                            <label><History size={14} style={{marginRight: '4px'}}/> History</label>
-                            <p>{appointment.medical_context.medicalHistory}</p>
-                         </div>
-                         <div className="pdm-analysis-item">
-                            <label><TagIcon size={14} style={{marginRight: '4px'}}/> Diagnostic Tags</label>
-                            <div className="pdm-tags-small">
-                               {appointment.medical_context.tags?.map(t => <span key={t}>#{t}</span>)}
-                            </div>
-                         </div>
-                      </div>
-                   ) : (
-                      <div className="pdm-empty-state">
-                         <Loader2 className="animate-spin" size={24} />
-                         <p>AI is still processing this report...</p>
-                      </div>
-                   )}
+                   <h3><Activity size={18} /> AI Clinical Analysis</h3>
+                   <div className="pdm-analysis-box">
+                      {appointment.pre_report ? (
+                        <>
+                           <div className="pdm-analysis-note">
+                              <label>Clinical Summary</label>
+                              <p>{appointment.pre_report.possibleConcern || "Summary generated from triage data."}</p>
+                           </div>
+                           <div className="pdm-analysis-item">
+                              <label><History size={14} style={{marginRight: '4px'}}/> Recommended Specialty</label>
+                              <p>{appointment.pre_report.recommendedSpecialty}</p>
+                           </div>
+                           <div className="pdm-analysis-item">
+                              <label><ShieldCheck size={14} style={{marginRight: '4px'}}/> Urgency Assessment</label>
+                              <div className={`pdm-urgency-badge ${appointment.pre_report.urgencyLevel?.toLowerCase()}`}>
+                                 {appointment.pre_report.urgencyLevel} Priority
+                              </div>
+                           </div>
+                        </>
+                      ) : (
+                        <div className="pdm-empty-state">
+                           <Loader2 className="animate-spin" size={24} />
+                           <p>AI is analyzing clinical indicators...</p>
+                        </div>
+                      )}
+                   </div>
                 </section>
              </div>
           </div>
         </div>
 
         <div className="pdm-footer">
-           <button className="pdm-done-btn" onClick={onClose}>Finish Review</button>
+           <button className="pdm-done-btn" onClick={onClose}>Mark Review Complete</button>
         </div>
       </div>
     </div>

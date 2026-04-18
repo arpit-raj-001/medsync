@@ -1,12 +1,15 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './pages/LandingPage';
 import ChatFlow from './components/ChatFlow/ChatFlow';
 import AppointmentsDashboard from './pages/AppointmentsDashboard';
 import TeleMeet from './pages/TeleMeet';
 import MigrateDoctors from './pages/MigrateDoctors';
 import DoctorDashboard from './pages/DoctorDashboard';
+import LoginPage from './pages/LoginPage';
 import Navbar from './components/Hero/Navbar';
+import DoctorNavbar from './components/Doctor/DoctorNavbar';
 
 // Simple Error Boundary to prevent blank screen
 class ErrorBoundary extends React.Component {
@@ -44,20 +47,47 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Protected Route Wrapper
+const ProtectedRoute = ({ children, allowedRole }) => {
+  const { user, role, loading } = useAuth();
+
+  if (loading) return <div>Loading identity...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (allowedRole && role !== allowedRole) return <Navigate to="/" />;
+  
+  return children;
+};
+
+// Navbar selection wrapper
+const DynamicNavbar = () => {
+    const { isDoctor } = useAuth();
+    if (isDoctor) return <DoctorNavbar />;
+    return <Navbar />;
+};
+
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/chat" element={<ChatFlow />} />
-          <Route path="/appointments" element={<AppointmentsDashboard />} />
-          <Route path="/telemeet" element={<TeleMeet />} />
-          <Route path="/migrate" element={<MigrateDoctors />} />
-          <Route path="/doctor-portal" element={<DoctorDashboard />} />
-        </Routes>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <DynamicNavbar />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/chat" element={<ChatFlow />} />
+            <Route 
+               path="/appointments" 
+               element={<ProtectedRoute allowedRole="patient"><AppointmentsDashboard /></ProtectedRoute>} 
+            />
+            <Route path="/telemeet" element={<TeleMeet />} />
+            <Route path="/migrate" element={<MigrateDoctors />} />
+            <Route 
+               path="/doctor-portal" 
+               element={<ProtectedRoute allowedRole="doctor"><DoctorDashboard /></ProtectedRoute>} 
+            />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

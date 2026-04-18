@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   Home, 
   LayoutDashboard, 
@@ -11,8 +12,15 @@ import {
 } from 'lucide-react';
 import './DoctorNavbar.css';
 
-const DoctorNavbar = ({ onLogout, doctorName }) => {
+const DoctorNavbar = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const doctorName = user?.name || 'Doctor';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <nav className="doc-navbar">
@@ -52,7 +60,7 @@ const DoctorNavbar = ({ onLogout, doctorName }) => {
                 <span>Verified Provider</span>
              </div>
           </div>
-          <button className="doc-logout-btn" onClick={onLogout}>
+          <button className="doc-logout-btn" onClick={handleLogout}>
             <LogOut size={18} />
           </button>
         </div>

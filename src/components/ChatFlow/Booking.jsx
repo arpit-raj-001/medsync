@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { ChevronLeft, CheckCircle2, Calendar as CalIcon, Clock, CreditCard, Video, Users, MapPin, UserSquare2, ShieldCheck, Loader2 } from 'lucide-react';
 import L from 'leaflet';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,6 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [mode, setMode] = useState('in-person');
@@ -113,8 +115,8 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
         .from('appointments')
         .insert([{
           case_id: caseId,
-          patient_id: '0001',
-          patient_name: 'Arpit Raj',
+          patient_id: user?.id || '0001',
+          patient_name: user?.name || 'Anonymous Patient',
           doctor_id: doctor.id,
           appointment_date: appointmentDate,
           appointment_time: selectedTime,
@@ -124,6 +126,13 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
         }]);
 
       if (dbError) throw dbError;
+
+      // 1.5 Auto-block the slot (since we've removed doctor acceptance)
+      await supabase.from('blocked_slots').insert([{
+        doctor_id: doctor.id,
+        appointment_date: appointmentDate,
+        appointment_time: selectedTime
+      }]);
 
       // 2. Keep local copy for immediate UI responsiveness if needed
       const newAppointment = {
