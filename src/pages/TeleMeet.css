@@ -1,0 +1,818 @@
+/**
+ * MEDISYNC TELEMEET - HIGH-FIDELITY CLINICAL INTERFACE
+ * Standard: Healthcare Professional Grade
+ * Version: 2.5 (Command Center Build)
+ */
+
+/* ==========================================================================
+   1. CORE TOKENS & RESET
+   ========================================================================== */
+:root {
+    /* Semantic Palette */
+    --tm-primary: #3b82f6;
+    --tm-primary-rgb: 59, 130, 246;
+    --tm-primary-dark: #2563eb;
+    --tm-secondary: #0ea5e9;
+    --tm-success: #10b981;
+    --tm-warning: #f59e0b;
+    --tm-error: #ef4444;
+    --tm-neutral: #64748b;
+    
+    /* Surface Palette */
+    --tm-bg-active: #0f172a;
+    --tm-bg-main: #f8fafc;
+    --tm-surface-light: #ffffff;
+    --tm-surface-dim: #f1f5f9;
+    --tm-glass: rgba(255, 255, 255, 0.7);
+    --tm-glass-border: rgba(255, 255, 255, 0.5);
+    
+    /* Text Palette */
+    --tm-text-header: #1e293b;
+    --tm-text-main: #475569;
+    --tm-text-dim: #94a3b8;
+    
+    /* Motion */
+    --tm-transit: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --tm-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Depth */
+    --tm-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --tm-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --tm-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    --tm-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+
+.tm-container {
+    min-height: 100vh;
+    background: var(--tm-bg-main);
+    padding: 32px 40px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--tm-text-main);
+}
+
+/* ==========================================================================
+   2. TOP NAVIGATION / PATIENT BAR
+   ========================================================================== */
+.tm-patient-bar {
+    max-width: 1400px;
+    margin: 0 auto 32px;
+    animation: slideDown 0.6s var(--tm-transit);
+}
+
+.tm-patient-card {
+    background: var(--tm-surface-light);
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    padding: 24px 32px;
+    box-shadow: var(--tm-shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.tm-patient-card h3 {
+    margin: 0 0 20px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--tm-text-header);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tm-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--tm-primary);
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.tm-patient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 32px;
+}
+
+.tm-patient-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tm-field-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--tm-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tm-field-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--tm-text-header);
+}
+
+/* ==========================================================================
+   3. PRE-JOIN INTERFACE GRID
+   ========================================================================== */
+.tm-prejoin {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 340px 1fr 340px;
+    gap: 32px;
+    min-height: 520px;
+}
+
+.tm-panel {
+    background: var(--tm-surface-light);
+    border-radius: 32px;
+    border: 1px solid #e2e8f0;
+    padding: 40px;
+    box-shadow: var(--tm-shadow-lg);
+    display: flex;
+    flex-direction: column;
+    transition: var(--tm-spring);
+    position: relative;
+}
+
+.tm-panel:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--tm-shadow-xl);
+}
+
+/* 3.1 Doctor Profile Panel (Left) */
+.tm-panel-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--tm-text-header);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+}
+
+.tm-doc-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--tm-surface-dim);
+    margin-bottom: 20px;
+    border: 3px solid white;
+    box-shadow: var(--tm-shadow-md);
+}
+
+.tm-doc-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tm-doc-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--tm-text-header);
+    margin-bottom: 4px;
+}
+
+.tm-doc-spec {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--tm-primary);
+    margin-bottom: 24px;
+}
+
+.tm-doc-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.tm-doc-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-label { font-size: 12px; color: var(--tm-text-dim); }
+.stat-value { font-size: 13px; font-weight: 700; color: var(--tm-text-header); }
+
+.tm-doc-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--tm-success);
+    margin-top: auto;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--tm-success);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--tm-success);
+    animation: tmPulse 2s infinite;
+}
+
+/* 3.2 Center Join Panel (Join Engine) */
+.tm-center-panel {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: none;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.tm-center-panel::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+}
+
+.tm-meet-icon {
+    width: 88px;
+    height: 88px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: var(--tm-shadow-lg);
+    animation: float 4s ease-in-out infinite;
+    z-index: 1;
+}
+
+.tm-meet-title {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    z-index: 1;
+}
+
+.tm-meet-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 440px;
+    line-height: 1.6;
+    margin-bottom: 36px;
+    z-index: 1;
+}
+
+.tm-meet-input-group {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 24px;
+    z-index: 1;
+}
+
+.tm-meet-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 18px 24px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.15em;
+    outline: none;
+    transition: var(--tm-transit);
+}
+
+.tm-meet-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--tm-primary);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.tm-id-badge-centered {
+    background: rgba(59, 130, 246, 0.15);
+    padding: 10px 20px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 13px;
+    color: #60a5fa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    z-index: 1;
+}
+
+.tm-join-btn {
+    width: 100%;
+    max-width: 360px;
+    background: var(--tm-primary);
+    color: white;
+    border: none;
+    border-radius: 18px;
+    padding: 18px;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: var(--tm-spring);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    z-index: 1;
+}
+
+.tm-join-btn:hover:not(:disabled) {
+    background: var(--tm-primary-dark);
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
+}
+
+.tm-join-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.tm-error-note {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+}
+
+/* 3.3 Medical Context Panel (Right) */
+.tm-report-section {
+    background: var(--tm-surface-dim);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.tm-report-label {
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--tm-text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+}
+
+.tm-report-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--tm-text-header);
+    font-weight: 600;
+}
+
+.tm-report-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--tm-text-main);
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+/* ==========================================================================
+   4. WAITING SCREEN EXPERIENCE
+   ========================================================================== */
+.tm-waiting-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeIn 0.8s ease;
+}
+
+.tm-waiting-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    height: 540px;
+}
+
+.tm-video-slot {
+    background: var(--tm-bg-active);
+    border-radius: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--tm-shadow-xl);
+}
+
+.tm-video-label {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 5;
+}
+
+.tm-waiting-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 40px;
+}
+
+.waiting-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    animation: tmPulse 2s infinite;
+}
+
+.waiting-text {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 8px;
+}
+
+.waiting-sub {
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 40px;
+}
+
+.tm-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.tm-countdown-circle {
+    position: relative;
+}
+
+.tm-countdown-time {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--tm-secondary);
+}
+
+.timer-bg { stroke: rgba(255,255,255,0.1); stroke-width: 4; fill: none; }
+.timer-progress { 
+    stroke: var(--tm-secondary); 
+    stroke-width: 4; 
+    stroke-linecap: round; 
+    fill: none;
+    transition: stroke-dashoffset 1s linear;
+}
+
+/* ==========================================================================
+   5. ACTIVE CALL INTERFACE
+   ========================================================================== */
+.tm-active-container {
+    height: 100vh;
+    background: var(--tm-bg-active);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tm-session-timer {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(12px);
+    padding: 10px 20px;
+    border-radius: 14px;
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.rec-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--tm-error);
+    border-radius: 50%;
+    animation: tmPulse 1.5s infinite;
+}
+
+/* 5.1 Doctor Clinical Sidebar */
+.tm-doctor-sidebar {
+    width: 360px;
+    background: var(--tm-surface-light);
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--tm-shadow-xl);
+    z-index: 50;
+    animation: slideLeft 0.5s var(--tm-transit);
+}
+
+.tm-sidebar-header {
+    padding: 32px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tm-sidebar-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--tm-text-header);
+    letter-spacing: -0.01em;
+}
+
+.tm-sidebar-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px;
+}
+
+.tm-info-sect {
+    margin-bottom: 32px;
+}
+
+.tm-info-sect label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--tm-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+}
+
+.tm-info-sect strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--tm-text-header);
+    margin-bottom: 8px;
+}
+
+.tm-info-sect p {
+    font-size: 14px;
+    color: var(--tm-text-main);
+    line-height: 1.7;
+    margin: 0;
+}
+
+.tm-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.tm-tags-row span {
+    background: #f0f9ff;
+    color: #0369a1;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* 5.2 Floating Call Controls (HUD) */
+.tm-call-controls {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    padding: 12px 24px;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: var(--tm-transit);
+}
+
+.tm-call-controls:hover {
+    transform: translateX(-50%) translateY(-4px);
+    background: rgba(15, 23, 42, 0.95);
+}
+
+.tm-ctrl-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 20px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--tm-spring);
+}
+
+.tm-ctrl-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.tm-ctrl-btn.active {
+    background: var(--tm-error);
+    box-shadow: 0 0 20px var(--tm-error);
+}
+
+.tm-ctrl-btn.end-btn {
+    background: var(--tm-error);
+    width: 84px;
+    border-radius: 24px;
+}
+
+.tm-ctrl-btn.end-btn:hover {
+    background: #dc2626;
+    width: 100px;
+}
+
+/* ==========================================================================
+   6. STATUS SCREENS (ENDED / EXPIRED)
+   ========================================================================== */
+.tm-status-screen {
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tm-status-card {
+    background: white;
+    border-radius: 40px;
+    padding: 60px;
+    text-align: center;
+    max-width: 520px;
+    box-shadow: var(--tm-shadow-xl);
+    animation: popIn 0.6s var(--tm-spring);
+}
+
+.tm-status-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 32px;
+}
+
+.tm-status-icon.expired { background: #fee2e2; color: var(--tm-error); }
+.tm-status-icon.ended { background: #f0f9ff; color: var(--tm-secondary); }
+
+.tm-status-card h2 {
+    font-size: 32px;
+    font-weight: 950;
+    color: var(--tm-text-header);
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+}
+
+.tm-status-card p {
+    font-size: 16px;
+    color: var(--tm-text-main);
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.tm-status-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.tm-status-btn {
+    padding: 14px 28px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--tm-transit);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tm-status-btn.primary { background: var(--tm-primary); color: white; border: none; }
+.tm-status-btn.secondary { background: var(--tm-surface-dim); color: var(--tm-text-header); border: none; }
+
+.tm-status-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   7. KEYFRAMES & ANIMATIONS
+   ========================================================================== */
+@keyframes tmPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* ==========================================================================
+   8. RESPONSIVE HARDENING
+   ========================================================================== */
+@media (max-width: 1200px) {
+    .tm-prejoin {
+        grid-template-columns: 1fr 1fr;
+    }
+    .tm-panel.main {
+        grid-column: span 2;
+        order: -1;
+    }
+}
+
+@media (max-width: 800px) {
+    .tm-prejoin {
+        grid-template-columns: 1fr;
+    }
+    .tm-panel.main {
+        grid-column: span 1;
+    }
+    .tm-waiting-grid {
+        grid-template-columns: 1fr;
+    }
+    .tm-patient-bar {
+        display: none;
+    }
+    .tm-container {
+        padding: 20px;
+    }
+}
+
+/* End of Professional TeleMeet Stylesheet */

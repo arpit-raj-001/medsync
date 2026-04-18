@@ -1,0 +1,321 @@
+.dd-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 40px;
+}
+
+/* Login View */
+.dd-login-view {
+    max-width: 440px;
+    margin: 100px auto;
+    background: white;
+    padding: 48px;
+    border-radius: 32px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    border: 1px solid #f1f5f9;
+}
+
+.dd-login-view h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    color: #0f172a;
+}
+
+.dd-login-view p {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.dd-input-group {
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.dd-input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dd-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #f1f5f9;
+    border-radius: 14px;
+    font-size: 16px;
+    transition: all 0.2s;
+    outline: none;
+    background: #f8fafc;
+}
+
+.dd-input:focus {
+    border-color: #0f172a;
+    background: white;
+}
+
+.dd-login-btn {
+    width: 100%;
+    padding: 16px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+}
+
+.dd-login-btn:hover {
+    background: #1e293b;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Home Layout (Calendar + List) */
+.dd-home-layout {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Dashboard Layout (Tabs) */
+.dd-dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    background: white;
+    padding: 32px 40px;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.dd-dash-title h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.dd-dash-title p {
+    margin: 4px 0 0 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.dd-dash-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.dd-mini-stat {
+    text-align: right;
+}
+
+.dd-mini-stat label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.dd-mini-stat strong {
+    font-size: 24px;
+    color: #0f172a;
+    font-weight: 900;
+}
+
+.dd-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 16px;
+    width: fit-content;
+}
+
+.dd-tab {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    background: transparent;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.dd-tab.active {
+    background: white;
+    color: #0f172a;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* Base Card & List Styles */
+.dd-main-card {
+    background: white;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.dd-card-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dd-card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.dd-list {
+    padding: 0;
+}
+
+.dd-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid #f8fafc;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.dd-item:hover {
+    background: #f8fafc;
+}
+
+.dd-item-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.dd-avatar-mini {
+    width: 44px;
+    height: 44px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dd-item-details strong {
+    display: block;
+    font-size: 15px;
+    color: #0f172a;
+    margin-bottom: 2px;
+}
+
+.dd-item-details span {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.dd-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.dd-item-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #475569;
+}
+
+.dd-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Action Buttons */
+.dd-action-btn {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.dd-action-btn.accept { background: #10b981; color: white; }
+.dd-action-btn.reject { background: #fef2f2; color: #dc2626; }
+.dd-action-btn.complete { background: #0f172a; color: white; }
+
+.dd-action-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.dd-launch-btn {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.dd-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.dd-icon-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+.dd-empty {
+    padding: 100px 0;
+    text-align: center;
+    color: #94a3b8;
+}
+
+@media (max-width: 1024px) {
+    .dd-home-layout { grid-template-columns: 1fr; }
+}

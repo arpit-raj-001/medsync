@@ -66,7 +66,7 @@ const Navbar = () => {
 
         {/* Actions */}
         <div className="nav-actions">
-          <button className="btn btn-ghost" id="btn-login">Log In</button>
+          <button className="btn btn-ghost" id="btn-portal" onClick={() => navigate('/doctor-portal')}>Doctor Portal</button>
           <button className="btn btn-primary" id="btn-signup">Get Started</button>
         </div>
 

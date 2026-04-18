@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Search, PlusCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Search, PlusCircle, CheckCircle2, XCircle, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -198,6 +198,24 @@ const AppointmentsDashboard = () => {
                          </div>
                          {app.status === 'pending' && (
                            <div className="dash-actions-row">
+                             {app.mode === 'Telehealth Video' && app.meetId && (
+                                <button 
+                                  onClick={() => {
+                                    localStorage.setItem('medisync_telemeet_context', JSON.stringify({
+                                      doctorName: app.doctorName,
+                                      specialty: app.specialty,
+                                      time: app.time,
+                                      caseId: app.id,
+                                      preReport: app.preReport || null
+                                    }));
+                                    navigate(`/telemeet?room=${app.meetId}`);
+                                  }}
+                                  className="dash-action-btn-solid"
+                                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #0369a1)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                >
+                                  <Video size={14} /> TeleMeet
+                                </button>
+                              )}
                              <button 
                                onClick={() => handleReschedule(app)} 
                                className="dash-action-btn-outline"

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ChevronLeft, CheckCircle2, Calendar as CalIcon, Clock, CreditCard, Video, Users, MapPin, UserSquare2, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Calendar as CalIcon, Clock, CreditCard, Video, Users, MapPin, UserSquare2, ShieldCheck, Loader2 } from 'lucide-react';
 import L from 'leaflet';
+import { supabase } from '../../lib/supabase';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -17,6 +18,11 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
   const [mode, setMode] = useState('in-person');
   const [paymentStep, setPaymentStep] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   // Generate 5 days starting from TOMORROW
   const dates = Array.from({length: 5}).map((_, i) => {
@@ -29,7 +35,34 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
     };
   });
 
-  React.useEffect(() => {
+  // Fetch blocked slots whenever date or doctor changes
+  useEffect(() => {
+    const fetchBlockedSlots = async () => {
+      const selectedFullDate = dates.find(d => d.date === selectedDate)?.full;
+      if (!selectedFullDate || !doctor.id) return;
+
+      setIsLoadingSlots(true);
+      try {
+        const { data, error } = await supabase
+          .from('blocked_slots')
+          .select('appointment_time')
+          .eq('doctor_id', doctor.id)
+          .eq('appointment_date', selectedFullDate);
+
+        if (!error && data) {
+          setBlockedSlots(data.map(s => s.appointment_time));
+        }
+      } catch (err) {
+        console.error('Error fetching slots:', err);
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    };
+
+    fetchBlockedSlots();
+  }, [selectedDate, doctor.id]);
+
+  useEffect(() => {
     if (dates.length > 0) {
       setSelectedDate(dates[0].date);
     }
@@ -44,49 +77,93 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
     }
   };
 
-  const handlePay = () => {
-    // Create actual appointment object
-    const newAppointment = {
-      id: isRescheduling ? reschedulingId : `APT-${Math.floor(10000 + Math.random() * 90000)}`,
-      doctorName: doctor.name,
-      specialty: doctor.specialty,
-      date: dates.find(d => d.date === selectedDate)?.full || dates[0].full,
-      time: selectedTime,
-      mode: mode === 'video' ? 'Telehealth Video' : 'In-Person Visit',
-      status: 'pending',
-      clinic: doctor.clinicName,
-      fee: `₹${doctor.consultationFee}`
-    };
+  // Generate unique Meet ID (which is also our Case ID now)
+  const generateMeetId = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'MS-';
+    for (let i = 0; i < 6; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+    return result;
+  };
 
-    // Append to localStorage
-    const saved = localStorage.getItem('medisync_appointments');
-    let appointments = saved ? JSON.parse(saved) : [];
-    
-    // Filter out mock data if initializing for first time to keep it clean
-    if (appointments.some(a => a.id === 'APT-09381')) {
-       appointments = appointments.filter(a => !a.id.startsWith('APT-0'));
-    }
-    
-    if (isRescheduling) {
-      // Update existing record
-      appointments = appointments.map(app => app.id === reschedulingId ? newAppointment : app);
-      localStorage.removeItem('medisync_rescheduling_id');
-    } else {
-      // Add new record
-      appointments.unshift(newAppointment);
-    }
-    
-    localStorage.setItem('medisync_appointments', JSON.stringify(appointments));
+  const [meetId, setMeetId] = useState('');
 
-    // Clear chat state if not rescheduling (rescheduling usually keeps context)
-    if (!isRescheduling) {
-      localStorage.removeItem('medisync_chat_messages');
-      localStorage.removeItem('medisync_chat_options');
-      localStorage.removeItem('medisync_chat_stage');
-      localStorage.removeItem('medisync_chat_patient');
+  const handlePay = async () => {
+    setIsSubmitting(true);
+    setError(null);
+
+    // Generate meet ID for telehealth appointments
+    const appointmentMeetId = mode === 'video' ? generateMeetId() : null;
+    const caseId = appointmentMeetId || `CS-${Math.floor(100000 + Math.random() * 900000)}`;
+    setMeetId(appointmentMeetId || '');
+
+    // Grab pre-report data BEFORE it gets cleared
+    let preReportData = null;
+    try {
+      const raw = localStorage.getItem('medisync_chat_patient');
+      if (raw) preReportData = JSON.parse(raw);
+    } catch (e) {
+      console.warn('Could not parse pre-report data:', e);
     }
-    
-    setConfirmed(true);
+
+    const appointmentDate = dates.find(d => d.date === selectedDate)?.full || dates[0].full;
+
+    try {
+      // 1. Save to Supabase
+      const { data, error: dbError } = await supabase
+        .from('appointments')
+        .insert([{
+          case_id: caseId,
+          patient_id: '0001',
+          patient_name: 'Arpit Raj',
+          doctor_id: doctor.id,
+          appointment_date: appointmentDate,
+          appointment_time: selectedTime,
+          mode: mode === 'video' ? 'Telehealth Video' : 'In-Person Visit',
+          status: 'pending',
+          pre_report: preReportData
+        }]);
+
+      if (dbError) throw dbError;
+
+      // 2. Keep local copy for immediate UI responsiveness if needed
+      const newAppointment = {
+        id: isRescheduling ? reschedulingId : caseId,
+        doctorName: doctor.name,
+        specialty: doctor.specialty,
+        date: appointmentDate,
+        time: selectedTime,
+        mode: mode === 'video' ? 'Telehealth Video' : 'In-Person Visit',
+        status: 'pending',
+        clinic: doctor.clinicName,
+        fee: `₹${doctor.consultationFee}`,
+        meetId: appointmentMeetId,
+        preReport: preReportData
+      };
+
+      const saved = localStorage.getItem('medisync_appointments');
+      let appointmentsList = saved ? JSON.parse(saved) : [];
+      if (isRescheduling) {
+        appointmentsList = appointmentsList.map(app => app.id === reschedulingId ? newAppointment : app);
+      } else {
+        appointmentsList.unshift(newAppointment);
+      }
+      localStorage.setItem('medisync_appointments', JSON.stringify(appointmentsList));
+
+      // 3. Cleanup chat state
+      if (!isRescheduling) {
+        localStorage.removeItem('medisync_chat_messages');
+        localStorage.removeItem('medisync_chat_options');
+        localStorage.removeItem('medisync_chat_stage');
+        localStorage.removeItem('medisync_chat_patient');
+      }
+      
+      setConfirmed(true);
+    } catch (err) {
+      console.error('Supabase integration error:', err);
+      setError('Failed to securely save appointment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (confirmed) {
@@ -99,6 +176,28 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
         <p>
           Your {mode === 'video' ? 'Telehealth' : 'In-Person'} appointment with <strong>{doctor.name}</strong> has been {isRescheduling ? 'updated' : 'scheduled'} for <strong>{selectedTime}</strong>.
         </p>
+
+        {meetId && (
+          <div style={{ 
+            background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', 
+            border: '2px solid #93c5fd', 
+            borderRadius: '16px', 
+            padding: '20px 28px', 
+            margin: '20px 0', 
+            textAlign: 'center' 
+          }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+              Your TeleMeet ID
+            </p>
+            <p style={{ fontSize: '28px', fontWeight: 900, color: '#0f172a', letterSpacing: '0.15em', fontFamily: 'monospace' }}>
+              {meetId}
+            </p>
+            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>
+              A confirmation has been saved directly to your dashboard.
+            </p>
+          </div>
+        )}
+
         <div className="bk-confirm-actions">
           <a href="/" className="pr-btn secondary" style={{textDecoration: 'none'}}>Return Home</a>
           <a href="/appointments" className="pr-btn primary" style={{textDecoration: 'none'}}>View Dashboard</a>
@@ -205,16 +304,22 @@ const Booking = ({ doctor, onBack, isRescheduling, reschedulingId }) => {
 
              <h4 className="bk-section-title">Available Times</h4>
              <div className="bk-times">
-               {doctor.slots.map((s, i) => (
-                 <button
-                   key={i}
-                   disabled={!s.isAvailable}
-                   onClick={() => setSelectedTime(s.time)}
-                   className={`bk-time-btn ${selectedTime === s.time ? 'active' : ''}`}
-                 >
-                   {selectedTime === s.time && <Clock size={14} />} {s.time}
-                 </button>
-               ))}
+               {isLoadingSlots ? (
+                 <div style={{padding: '20px', textAlign: 'center', width: '100%'}}><Loader2 className="animate-spin" opacity={0.5} /></div>
+               ) : doctor.slots.map((s, i) => {
+                 const isBlocked = blockedSlots.includes(s.time);
+                 return (
+                   <button
+                     key={i}
+                     disabled={!s.isAvailable || isBlocked}
+                     onClick={() => setSelectedTime(s.time)}
+                     className={`bk-time-btn ${selectedTime === s.time ? 'active' : ''}`}
+                   >
+                     {selectedTime === s.time && <Clock size={14} />} {s.time}
+                     {isBlocked && <span style={{fontSize: '9px', opacity: 0.7, marginLeft: '4px'}}>(Full)</span>}
+                   </button>
+                 );
+               })}
              </div>
 
              <div className="bk-checkout-btm">

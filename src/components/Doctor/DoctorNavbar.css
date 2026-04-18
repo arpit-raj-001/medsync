@@ -1,0 +1,147 @@
+.doc-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: white;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+.doc-nav-container {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.doc-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.doc-logo-box {
+    background: #0f172a;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-nav-logo span {
+    font-weight: 900;
+    font-size: 20px;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.doc-nav-logo small {
+    background: #10b981;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.doc-nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.doc-nav-link {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.doc-nav-link:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.doc-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.doc-profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 24px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.doc-profile-avatar {
+    width: 36px;
+    height: 36px;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-profile-text {
+    line-height: 1.2;
+}
+
+.doc-profile-text strong {
+    display: block;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.doc-profile-text span {
+    font-size: 11px;
+    color: #10b981;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.doc-logout-btn {
+    background: #fef2f2;
+    color: #dc2626;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.doc-logout-btn:hover {
+    background: #fee2e2;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .doc-nav-links { display: none; }
+    .doc-profile-info { display: none; }
+}

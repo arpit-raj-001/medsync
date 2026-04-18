@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import ChatFlow from './components/ChatFlow/ChatFlow';
 import AppointmentsDashboard from './pages/AppointmentsDashboard';
+import TeleMeet from './pages/TeleMeet';
+import MigrateDoctors from './pages/MigrateDoctors';
+import DoctorDashboard from './pages/DoctorDashboard';
 import Navbar from './components/Hero/Navbar';
 
 // Simple Error Boundary to prevent blank screen
@@ -50,6 +53,9 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/chat" element={<ChatFlow />} />
           <Route path="/appointments" element={<AppointmentsDashboard />} />
+          <Route path="/telemeet" element={<TeleMeet />} />
+          <Route path="/migrate" element={<MigrateDoctors />} />
+          <Route path="/doctor-portal" element={<DoctorDashboard />} />
         </Routes>
       </Router>
     </ErrorBoundary>
