@@ -53,6 +53,8 @@ const Navbar = () => {
                   closeMobile();
                   if (link === 'Home') navigate('/');
                   else if (link === 'Appointments') navigate('/appointments');
+                  else if (link === 'Medications') navigate('/medications');
+                  else if (link === 'Reports') navigate('/reports');
                   // Quick scroll for features if on landing
                   else if (link === 'Features') {
                     if (window.location.pathname === '/') window.location.hash = 'features';

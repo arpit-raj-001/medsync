@@ -7,6 +7,8 @@ import AppointmentsDashboard from './pages/AppointmentsDashboard';
 import TeleMeet from './pages/TeleMeet';
 import MigrateDoctors from './pages/MigrateDoctors';
 import DoctorDashboard from './pages/DoctorDashboard';
+import Medications from './pages/Medications';
+import Reports from './pages/Reports';
 import LoginPage from './pages/LoginPage';
 import Navbar from './components/Hero/Navbar';
 import DoctorNavbar from './components/Doctor/DoctorNavbar';
@@ -84,6 +86,14 @@ function App() {
             <Route 
                path="/doctor-portal" 
                element={<ProtectedRoute allowedRole="doctor"><DoctorDashboard /></ProtectedRoute>} 
+            />
+            <Route 
+               path="/medications" 
+               element={<ProtectedRoute allowedRole="patient"><Medications /></ProtectedRoute>} 
+            />
+            <Route 
+               path="/reports" 
+               element={<ProtectedRoute allowedRole="patient"><Reports /></ProtectedRoute>} 
             />
           </Routes>
         </Router>

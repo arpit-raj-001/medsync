@@ -30,6 +30,7 @@ const TeleMeetPatient = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // 1. State & Refs
   const [phase, setPhase] = useState('pre-join');
   const [roomId, setRoomId] = useState(searchParams.get('room') || '');
   const [countdown, setCountdown] = useState(WAITING_TIMEOUT);
@@ -40,6 +41,7 @@ const TeleMeetPatient = () => {
   const [validationError, setValidationError] = useState('');
   const [isCheckingId, setIsCheckingId] = useState(false);
   const [isDoctor] = useState(false);
+  const [presence, setPresence] = useState({ doctor_ready: false, patient_ready: false });
 
   const jitsiContainerRef = useRef(null);
   const jitsiApiRef = useRef(null);
@@ -54,15 +56,117 @@ const TeleMeetPatient = () => {
     doctorExp: '...', doctorRating: '...', doctorImage: null,
   });
 
-  // ====== Sync Room ID from URL and Auto-Fetch if present ======
-  useEffect(() => {
-    const room = searchParams.get('room');
-    if (room && room !== roomId) {
-      setRoomId(room);
-    }
-  }, [searchParams, roomId]);
+  // 2. Helper Functions (Defined before use in Effects)
+  const formatTime = (seconds) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  };
 
-  // ====== Load Data from Supabase ======
+  const updateReadyStatus = useCallback(async (status) => {
+    if (!roomId) return;
+    try {
+      await supabase
+        .from('appointments')
+        .update({ patient_ready: status })
+        .eq('case_id', roomId);
+    } catch (err) {
+      console.error('Ready update error:', err);
+    }
+  }, [roomId]);
+
+  const startLocalVideo = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      setLocalStream(stream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      return stream;
+    } catch (err) {
+      console.warn('Camera access denied:', err);
+      return null;
+    }
+  }, []);
+
+  const stopLocalVideo = useCallback(() => {
+    setLocalStream(prev => {
+        if (prev) prev.getTracks().forEach(track => track.stop());
+        return null;
+    });
+  }, []);
+
+  const cleanupJitsi = useCallback(() => {
+    updateReadyStatus(false);
+    if (jitsiApiRef.current) {
+      jitsiApiRef.current.dispose();
+      jitsiApiRef.current = null;
+    }
+    clearInterval(countdownRef.current);
+    clearInterval(sessionTimerRef.current);
+    stopLocalVideo();
+  }, [updateReadyStatus, stopLocalVideo]);
+
+  const initJitsi = useCallback(() => {
+    if (!jitsiContainerRef.current || jitsiApiRef.current || !roomId) return;
+
+    const options = {
+      roomName: `medisync-${roomId}`,
+      parentNode: jitsiContainerRef.current,
+      width: '100%',
+      height: '100%',
+      configOverwrite: {
+        prejoinPageEnabled: false,
+        disablePrejoinPage: true,
+        p2p: { enabled: false }, // Critical Fix: Force media through bridge to solve "Camera Blocked"
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
+        disableDeepLinking: true,
+        disableInviteFunctions: true,
+        hideConferenceSubject: true,
+        hideConferenceTimer: true,
+        disableProfile: true,
+        toolbarButtons: [
+          'microphone', 'camera', 'fullscreen', 'fittowindow',
+          'hangup', 'videoquality', 'filmstrip', 'tileview'
+        ]
+      },
+      interfaceConfigOverwrite: {
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_WATERMARK_FOR_GUESTS: false,
+        DEFAULT_BACKGROUND: '#0f172a',
+      },
+      userInfo: {
+        displayName: patientData.name,
+        email: 'patient@medisync.health'
+      }
+    };
+
+    if (window.JitsiMeetExternalAPI) {
+      const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, options);
+
+      api.addListener('participantJoined', () => {
+        setPhase('active');
+        if (!sessionTimerRef.current) {
+          sessionTimerRef.current = setInterval(() => setSessionTime(prev => prev + 1), 1000);
+        }
+      });
+
+      api.addListener('readyToClose', () => {
+        cleanupJitsi();
+        setPhase('ended');
+      });
+
+      jitsiApiRef.current = api;
+
+      // Add strict media permissions to the generated iframe
+      const iframe = jitsiContainerRef.current.querySelector('iframe');
+      if (iframe) {
+        iframe.setAttribute('allow', 'camera; microphone; display-capture; autoplay; clipboard-write; spotlight');
+      }
+    }
+  }, [roomId, patientData.name, cleanupJitsi]);
+
   const fetchAppointmentData = useCallback(async (id) => {
     if (!id) return;
     setIsCheckingId(true);
@@ -94,32 +198,24 @@ const TeleMeetPatient = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (phase === 'pre-join' && roomId) {
-      fetchAppointmentData(roomId);
+  const handleJoin = async () => {
+    if (!roomId.trim()) return;
+    const matched = await validateMeetId(roomId.trim());
+    if (!matched) {
+      setValidationError('Invalid Meet ID. Please verify your appointment details.');
+      return;
     }
-  }, [roomId, phase, fetchAppointmentData]);
-
-  const [presence, setPresence] = useState({ doctor_ready: false, patient_ready: false });
-  const presenceIntervalRef = useRef(null);
-
-  // ====== Presence & Handshake (Supabase Realtime) ======
-  const updateReadyStatus = async (status) => {
-    if (!roomId) return;
-    try {
-      await supabase
-        .from('appointments')
-        .update({ patient_ready: status })
-        .eq('case_id', roomId);
-    } catch (err) {
-      console.error('Ready update error:', err);
-    }
+    setValidationError('');
+    setPhase('waiting');
+    await updateReadyStatus(true);
   };
 
+  // 3. Effects (Using initialized functions)
+
+  // Handshake Subscription
   useEffect(() => {
     if (!roomId) return;
 
-    // 1. Initial Fetch
     const getInitialStatus = async () => {
       const { data } = await supabase
         .from('appointments')
@@ -130,7 +226,6 @@ const TeleMeetPatient = () => {
     };
     getInitialStatus();
 
-    // 2. Realtime Subscription
     const channel = supabase
       .channel(`handshake-p-${roomId}`)
       .on('postgres_changes', { 
@@ -152,127 +247,75 @@ const TeleMeetPatient = () => {
       supabase.removeChannel(channel);
       updateReadyStatus(false);
     };
-  }, [roomId]);
+  }, [roomId, updateReadyStatus]);
 
-  // Launch Jitsi only when BOTH are ready
+  // Global Countdown Logic (Stable)
   useEffect(() => {
-    if (presence.doctor_ready && presence.patient_ready && phase === 'active') {
-       if (!jitsiApiRef.current) initJitsi();
+    let timerId = null;
+    if (phase === 'waiting') {
+        timerId = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    setPhase('expired');
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
     }
-  }, [presence, phase, initJitsi]);
-
-  // ====== Self Video Preview ======
-  const startLocalVideo = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      setLocalStream(stream);
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-    } catch (err) {
-      console.warn('Camera access denied:', err);
-    }
-  }, []);
-
-  const stopLocalVideo = useCallback(() => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-      setLocalStream(null);
-    }
-  }, [localStream]);
-
-  // ====== Jitsi Integration ======
-  const initJitsi = useCallback(() => {
-    if (!jitsiContainerRef.current || jitsiApiRef.current) return;
-
-    const options = {
-      roomName: `medisync-${roomId}`,
-      parentNode: jitsiContainerRef.current,
-      width: '100%',
-      height: '100%',
-      configOverwrite: {
-        prejoinPageEnabled: false,
-        disableDeepLinking: true,
-        disableInviteFunctions: true,
-        disablePrejoinPage: true,
-        hideConferenceSubject: true,
-        hideConferenceTimer: true,
-        disableProfile: true,
-        p2p: { enabled: false }, // Force media through bridge to fix camera blockage
-        toolbarButtons: [
-          'microphone', 'camera', 'fullscreen', 'fittowindow',
-          'hangup', 'videoquality', 'filmstrip', 'tileview'
-        ],
-        startWithAudioMuted: false,
-        startWithVideoMuted: false,
-      },
-      interfaceConfigOverwrite: {
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        DEFAULT_BACKGROUND: '#0f172a',
-      },
-      userInfo: {
-        displayName: patientData.name,
-        email: 'patient@medisync.health'
-      }
+    return () => {
+        if (timerId) clearInterval(timerId);
     };
+  }, [phase]);
 
-    if (window.JitsiMeetExternalAPI) {
-      const api = new window.JitsiMeetExternalAPI(JITSI_DOMAIN, options);
-
-      api.addListener('participantJoined', () => {
-        setPhase('active');
-        sessionTimerRef.current = setInterval(() => setSessionTime(prev => prev + 1), 1000);
-      });
-
-      api.addListener('readyToClose', () => {
-        cleanupJitsi();
-        setPhase('ended');
-      });
-
-      jitsiApiRef.current = api;
-    }
-  }, [roomId, patientData.name]);
-
-  const cleanupJitsi = useCallback(() => {
-    updateJoinStatus(false);
-    if (jitsiApiRef.current) {
-      jitsiApiRef.current.dispose();
-      jitsiApiRef.current = null;
-    }
-    clearInterval(countdownRef.current);
-    clearInterval(sessionTimerRef.current);
-    if (presenceIntervalRef.current) clearInterval(presenceIntervalRef.current);
-    stopLocalVideo();
-  }, [stopLocalVideo, roomId]);
-
-  const handleJoin = async () => {
-    if (!roomId.trim()) return;
-    const matched = await validateMeetId(roomId.trim());
-    if (!matched) {
-      setValidationError('Invalid Meet ID. Please verify your appointment details.');
-      return;
-    }
-    setValidationError('');
-    stopLocalVideo();
-    setPhase('active');
-    await updateReadyStatus(true);
-  };
-
-
-  // ====== Effects ======
+  // Sync Phase Transition
   useEffect(() => {
-    if (phase === 'pre-join') startLocalVideo();
+    if (presence.doctor_ready && presence.patient_ready && phase === 'waiting') {
+        setPhase('active');
+        stopLocalVideo();
+    }
+  }, [presence, phase, stopLocalVideo]);
+
+  // Jitsi Trigger
+  useEffect(() => {
+    if (phase === 'active' && !jitsiApiRef.current) {
+        initJitsi();
+    }
+  }, [phase, initJitsi]);
+
+  // Media Management (Hardened against jitter)
+  useEffect(() => {
+    if (phase === 'waiting') {
+        const init = async () => {
+            await startLocalVideo();
+        };
+        init();
+    }
     return () => stopLocalVideo();
   }, [phase, startLocalVideo, stopLocalVideo]);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
+  // Ensure camera feed reflects in UI when waiting room mounts
+  useEffect(() => {
+    if (localStream && localVideoRef.current && phase === 'waiting') {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, phase]);
 
-  // ---------- RENDER ----------
+  // Room Sync
+  useEffect(() => {
+    const room = searchParams.get('room');
+    if (room && room !== roomId) {
+      setRoomId(room);
+    }
+  }, [searchParams, roomId]);
+
+  useEffect(() => {
+    if (phase === 'pre-join' && roomId) {
+      fetchAppointmentData(roomId);
+    }
+  }, [roomId, phase, fetchAppointmentData]);
+
+  // 4. Render Logic
   if (phase === 'expired') {
     return (
       <div className="tm-container">
@@ -316,36 +359,48 @@ const TeleMeetPatient = () => {
           <button className="tm-ctrl-btn end-btn" onClick={() => { cleanupJitsi(); setPhase('ended'); }}><PhoneOff size={24} /></button>
         </div>
 
-        {/* --- DIAGNOSTIC HUD --- */}
-        <div className="tm-debug-panel">
-           <div className="tm-debug-stat">
-              <span className={`tm-stat-dot ${localStream ? 'online' : 'offline'}`}></span>
-              Camera HW: {localStream ? 'ACTIVE' : 'READY'}
-           </div>
-           <div className="tm-debug-stat">
-              <span className={`tm-stat-dot ${presence.patient_ready ? 'online' : 'offline'}`}></span>
-              Me (Patient): {presence.patient_ready ? 'READY' : 'WAITING'}
-           </div>
-           <div className="tm-debug-stat">
-              <span className={`tm-stat-dot ${presence.doctor_ready ? 'online' : 'offline'}`}></span>
-              Doctor Signal: {presence.doctor_ready ? 'ONLINE' : 'OFFLINE'}
-           </div>
-           <div className="tm-debug-actions">
-              <button onClick={() => updateReadyStatus(true)}>Set Ready</button>
-              <button onClick={() => updateReadyStatus(false)}>Reset Signal</button>
-           </div>
-           <div className="tm-debug-id">Tunnel: {roomId}</div>
+        {/* --- CONNECTION CENTER (Polished HUD) --- */}
+        <div className="tm-connection-center">
+            <div className="tm-conn-stat">
+                <span className="tm-stat-header">Identity</span>
+                <span className="tm-stat-body"><User size={14} /> Patient (Me)</span>
+            </div>
+            <div className="tm-conn-stat">
+                <span className="tm-stat-header">Signal</span>
+                <div className="tm-stat-body">
+                    <span className={`tm-status-indicator ${presence.patient_ready ? 'online' : 'offline'}`}></span>
+                    {presence.patient_ready ? 'READY' : 'OFFLINE'}
+                </div>
+            </div>
+            <div className="tm-conn-stat">
+                <span className="tm-stat-header">Doctor</span>
+                <div className="tm-stat-body">
+                    <span className={`tm-status-indicator ${presence.doctor_ready ? 'online' : 'offline'}`}></span>
+                    {presence.doctor_ready ? 'CONNECTED' : 'WAITING'}
+                </div>
+            </div>
+            <div className="tm-conn-actions">
+                <button className="tm-conn-btn" onClick={() => updateReadyStatus(true)}>Ping</button>
+                <button className="tm-conn-btn" onClick={() => updateReadyStatus(false)}>Reset</button>
+            </div>
+            <div className="tm-debug-id">Tunnel: {roomId}</div>
         </div>
       </div>
     );
   }
 
   if (phase === 'waiting') {
-    const circum = 2 * Math.PI * 35;
-    const progress = ((WAITING_TIMEOUT - countdown) / WAITING_TIMEOUT) * circum;
     return (
       <div className="tm-container">
         <div className="tm-waiting-container">
+          <div className="tm-waiting-hero">
+            <h2>Initializing Consultation</h2>
+            <div className="tm-sync-loader">
+                <div className="tm-sync-dot"></div>
+                <div className="tm-sync-dot"></div>
+                <div className="tm-sync-dot"></div>
+            </div>
+          </div>
           <div className="tm-waiting-grid">
             <div className="tm-video-slot self-video">
               <video 
@@ -355,17 +410,30 @@ const TeleMeetPatient = () => {
                 muted 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
-              <div className="tm-video-label">You — {patientData.name}</div>
+              <div className="tm-video-label">You — {patientData.name} (Live Preview)</div>
             </div>
             <div className="tm-video-slot">
               <div className="tm-waiting-placeholder">
                 <div className="waiting-icon"><Stethoscope size={36} color="#0ea5e9" /></div>
-                <span className="waiting-text">Waiting for Doctor…</span>
-                <span className="waiting-sub">{patientData.doctorName}</span>
+                <span className="waiting-text">Waiting for {patientData.doctorName}…</span>
+                <span className="waiting-sub">Your provider has been notified. They will join shortly.</span>
                 <div className="tm-countdown">
-                    <Loader2 className="animate-spin" size={32} color="#0ea5e9" />
-                    <span className="tm-countdown-time" style={{position: 'relative', top: '20px'}}>Syncing...</span>
+                    <div className="tm-countdown-circle">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="36" className="timer-bg" />
+                            <circle cx="40" cy="40" r="36" className="timer-progress" style={{ strokeDashoffset: (226 * (1 - countdown / WAITING_TIMEOUT)), strokeDasharray: 226 }} />
+                        </svg>
+                        <span className="tm-countdown-time">{formatTime(countdown)}</span>
+                    </div>
+                    <span style={{fontSize: '11px', opacity: 0.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px'}}>Request Valid For</span>
                 </div>
+                <button 
+                  className="tm-status-btn secondary" 
+                  style={{marginTop: '32px', padding: '12px 24px'}}
+                  onClick={() => { cleanupJitsi(); setPhase('pre-join'); }}
+                >
+                  Leave Waiting Room
+                </button>
               </div>
             </div>
           </div>

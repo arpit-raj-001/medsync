@@ -86,3 +86,130 @@ export const continueGroqChat = async (historyArray, latestInput) => {
       throw e;
     }
 };
+
+/**
+ * runGroqFallback
+ * A generic helper to handle clinical extraction/reporting when Gemini fails.
+ */
+export const runGroqFallback = async (prompt, schemaDescription = "") => {
+    if (!groq) throw new Error("Groq SDK is not available.");
+
+    const systemPrompt = `You are an expert clinical data extractor. Your goal is to generate structured medical reports in JSON format. 
+    ${schemaDescription}
+    RESPOND ONLY WITH VALID JSON. DO NOT EXPLAIN. DO NOT SIMPLIFY CLINICAL TERMS.`;
+
+    try {
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt }
+        ],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.2, // Low temperature for extraction accuracy
+        response_format: { type: 'json_object' }
+      });
+
+      return JSON.parse(completion.choices[0].message.content);
+    } catch (e) {
+      console.error("Groq Fallback Error:", e);
+      throw e;
+    }
+};
+
+/**
+    const schemaHint = `Strictly return ONLY JSON: { "medications": [{ "name", "dosage", "frequency", "times", "notes" }] }`;
+    return await runGroqFallback(prompt, schemaHint);
+};
+
+/**
+ * generateSimulatedConsultation
+ * Generates a sophisticated, highly-educated to-and-fro conversation
+ * between a doctor and patient based on triage pre-report data.
+ */
+export const generateSimulatedConsultation = async (preReportData) => {
+    if (!groq) throw new Error("Groq SDK is not available.");
+
+    const prompt = `
+    PATIENT TRIAGE DATA:
+    ${JSON.stringify(preReportData, null, 2)}
+
+    TASK: Generate a dynamic, professional medical consultation transcript.
+    
+    PERSONA - THE DOCTOR:
+    - Highly educated, uses sophisticated clinical language (e.g., "symptomatology", "etiological factors", "pharmacological intervention").
+    - Professional but thorough.
+    - Asks clarifying questions based on the triage data.
+    
+    CONTENT REQUIREMENTS:
+    1. Introduction and confirmation of triage symptoms.
+    2. A detailed to-and-fro dialogue (at least 10 exchanges).
+    3. A clear clinical assessment/diagnosis.
+    4. Explicit prescription of medicines with dosage and timing.
+    5. Lifestyle advice and emergency danger signs.
+    
+    FORMAT:
+    Return as a plain text transcript with "Doctor:" and "Patient:" prefixes.
+    `.trim();
+
+    try {
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: "You are a specialized clinical scriptwriter. Generate a high-fidelity medical consultation transcript. Respond ONLY with the transcript text." },
+          { role: 'user', content: prompt }
+        ],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.8
+      });
+
+      return completion.choices[0].message.content;
+    } catch (e) {
+      console.error("Groq Simulation Error:", e);
+      throw e;
+    }
+};
+
+/**
+ * summarizeReportForLayman
+ * Translates complex clinical reports into extremely simple, analogy-based terms.
+ */
+export const summarizeReportForLayman = async (reportData) => {
+    if (!groq) throw new Error("Groq SDK is not available.");
+
+    const systemPrompt = `You are a kind, wise village doctor who explains medical things to children or people with no formal education.
+    
+    TASK: Translate the clinical report into a "Grandma-friendly" sensory guide.
+    GUIDELINES:
+    - Use ZERO technical terms. Call it "Heavy chest" instead of "Angina", "Fast heart" instead of "Tachycardia".
+    - Use sensory descriptions for warnings (e.g., "If your skin feels cold like a wet stone", "If your breath sounds like a whistle").
+    - Use analogies for medicines (e.g., "The white round pill is the worker that keeps your blood moving smooth").
+    - Explicitly list forbidden things (e.g., "No heavy field work", "No salty pickles").
+    
+    RESPOND ONLY IN JSON:
+    {
+      "simpleDiagnosis": "An analogy-based explanation of what is wrong",
+      "whatToDoNow": ["3-5 very simple positive actions like drinking warm water or walking slowly"],
+      "thingsToAvoid": ["3-5 forbidden things like specific foods, heavy work, or cold water"],
+      "medicineSteps": [
+        { "medicine": "description of the pill", "job": "simple analogy of what it does in the body" }
+      ],
+      "dangerSigns": ["3 specific sensory signs to visit a hospital immediately"],
+      "reassurance": "A kind, culturally respectful closing message"
+    }`;
+
+    try {
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `Summarize this clinical report simply: ${JSON.stringify(reportData)}` }
+        ],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        response_format: { type: 'json_object' }
+      });
+
+      return JSON.parse(completion.choices[0].message.content);
+    } catch (e) {
+      console.error("Groq Layman Summary Error:", e);
+      throw e;
+    }
+};
