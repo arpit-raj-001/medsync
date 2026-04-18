@@ -816,3 +816,83 @@
 }
 
 /* End of Professional TeleMeet Stylesheet */
+/* ==========================================================================
+   9. DIAGNOSTIC LAYER (DEBUG)
+   ========================================================================== */
+.tm-debug-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  z-index: 9999;
+  color: white;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.tm-debug-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tm-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tm-stat-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.tm-stat-dot.offline { background: #ef4444; }
+
+.tm-debug-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tm-debug-actions button {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.tm-debug-actions button:hover {
+  background: white;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.tm-debug-id {
+  color: #94a3b8;
+  font-weight: 800;
+  padding-left: 24px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 900px) {
+  .tm-debug-panel {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px;
+  }
+  .tm-debug-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}

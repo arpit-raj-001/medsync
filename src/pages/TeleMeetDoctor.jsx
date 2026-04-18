@@ -175,45 +175,65 @@ const TeleMeetDoctor = () => {
     }
   }, [roomId, phase, fetchAppointmentData]);
 
-  const [bothJoined, setBothJoined] = useState(false);
-  const presenceIntervalRef = useRef(null);
+  const [presence, setPresence] = useState({ doctor_ready: false, patient_ready: false });
 
-  // ====== Presence Management ======
-  const updateJoinStatus = async (status) => {
+  // ====== Presence & Handshake (Supabase Realtime) ======
+  const updateReadyStatus = async (status) => {
     if (!roomId) return;
     try {
       await supabase
         .from('appointments')
-        .update({ doctor_joined: status })
+        .update({ doctor_ready: status })
         .eq('case_id', roomId);
     } catch (err) {
-      console.error('Presence update error:', err);
+      console.error('Ready update error:', err);
     }
   };
 
-  const startPresencePolling = useCallback(() => {
-    if (presenceIntervalRef.current) return;
-    presenceIntervalRef.current = setInterval(async () => {
-      if (!roomId) return;
-      const { data, error } = await supabase
+  useEffect(() => {
+    if (!roomId) return;
+
+    // 1. Initial Fetch
+    const getInitialStatus = async () => {
+      const { data } = await supabase
         .from('appointments')
-        .select('patient_joined')
+        .select('doctor_ready, patient_ready')
         .eq('case_id', roomId)
         .single();
-      
-      if (data && data.patient_joined) {
-        setBothJoined(true);
-        clearInterval(presenceIntervalRef.current);
-      }
-    }, 4000);
-  }, [roomId]);
+      if (data) setPresence(data);
+    };
+    getInitialStatus();
 
-  useEffect(() => {
+    // 2. Realtime Subscription
+    const channel = supabase
+      .channel(`handshake-${roomId}`)
+      .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'appointments', 
+          filter: `case_id=eq.${roomId}` 
+      }, (payload) => {
+        if (payload.new) {
+          setPresence({
+            doctor_ready: payload.new.doctor_ready,
+            patient_ready: payload.new.patient_ready
+          });
+        }
+      })
+      .subscribe();
+
     return () => {
-      if (presenceIntervalRef.current) clearInterval(presenceIntervalRef.current);
-      updateJoinStatus(false);
+      supabase.removeChannel(channel);
+      updateReadyStatus(false);
     };
   }, [roomId]);
+
+  // Launch Jitsi only when BOTH are ready
+  useEffect(() => {
+    if (presence.doctor_ready && presence.patient_ready && phase === 'active') {
+       if (!jitsiApiRef.current) initJitsi();
+    }
+  }, [presence, phase, initJitsi]);
 
   // ====== Self Video Preview ======
   const startLocalVideo = useCallback(async () => {
@@ -248,10 +268,17 @@ const TeleMeetDoctor = () => {
         prejoinPageEnabled: false,
         disableDeepLinking: true,
         disableInviteFunctions: true,
+        disablePrejoinPage: true,
         hideConferenceSubject: true,
         hideConferenceTimer: true,
         disableProfile: true,
-        toolbarButtons: [],
+        p2p: { enabled: false }, // Force media through bridge to fix camera blockage
+        toolbarButtons: [
+          'microphone', 'camera', 'fullscreen', 'fittowindow',
+          'hangup', 'videoquality', 'filmstrip', 'tileview'
+        ],
+        startWithAudioMuted: false,
+        startWithVideoMuted: false,
       },
       interfaceConfigOverwrite: {
         SHOW_JITSI_WATERMARK: false,
@@ -301,18 +328,17 @@ const TeleMeetDoctor = () => {
 
   const handleJoin = async () => {
     setValidationError('');
-    setPhase('waiting');
-    await updateJoinStatus(true);
-    startPresencePolling();
+    stopLocalVideo();
+    setPhase('active');
+    await updateReadyStatus(true);
   };
 
-  useEffect(() => {
-    if (bothJoined && phase === 'waiting') {
-      stopLocalVideo();
-      setPhase('active');
-      initJitsi();
-    }
-  }, [bothJoined, phase, initJitsi, stopLocalVideo]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   // ---------- RENDER ----------
   if (phase === 'ended') {
@@ -390,6 +416,27 @@ const TeleMeetDoctor = () => {
           <button className="tm-ctrl-btn" onClick={() => jitsiApiRef.current?.executeCommand('toggleAudio')}><Mic size={22} /></button>
           <button className="tm-ctrl-btn" onClick={() => jitsiApiRef.current?.executeCommand('toggleVideo')}><Video size={22} /></button>
           <button className="tm-ctrl-btn end-btn" onClick={() => { cleanupJitsi(); setPhase('ended'); }}><PhoneOff size={24} /></button>
+        </div>
+
+        {/* --- DIAGNOSTIC HUD --- */}
+        <div className="tm-debug-panel">
+           <div className="tm-debug-stat">
+              <span className={`tm-stat-dot ${localStream ? 'online' : 'offline'}`}></span>
+              Camera HW: {localStream ? 'ACTIVE' : 'READY'}
+           </div>
+           <div className="tm-debug-stat">
+              <span className={`tm-stat-dot ${presence.doctor_ready ? 'online' : 'offline'}`}></span>
+              Me (Doctor): {presence.doctor_ready ? 'READY' : 'WAITING'}
+           </div>
+           <div className="tm-debug-stat">
+              <span className={`tm-stat-dot ${presence.patient_ready ? 'online' : 'offline'}`}></span>
+              Patient Signal: {presence.patient_ready ? 'ONLINE' : 'OFFLINE'}
+           </div>
+           <div className="tm-debug-actions">
+              <button onClick={() => updateReadyStatus(true)}>Set Ready</button>
+              <button onClick={() => updateReadyStatus(false)}>Reset Signal</button>
+           </div>
+           <div className="tm-debug-id">Tunnel: {roomId}</div>
         </div>
       </div>
     );
